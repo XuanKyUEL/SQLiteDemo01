@@ -8,10 +8,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -44,7 +42,8 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String DATABASE_NAME = "product_db.db";
     public static final String DB_PATH = "/databases/";
-    SQLiteDatabase db = null;
+    SQLiteDatabase Beerdb = null;
+
 
     public static final String TABLE_NAME = "Product";
     public static final String COLUMN_ID = "ProductId";
@@ -74,15 +73,15 @@ public class MainActivity extends AppCompatActivity {
         });
         copyDBfromAssets();
         addControls();
-        loadDB();
+        loadBeerDB();
     }
 
-    private void loadDB() {
-        db = openOrCreateDatabase(DATABASE_NAME, MODE_PRIVATE, null);
-        if (db != null) {
+    private void loadBeerDB() {
+        Beerdb = openOrCreateDatabase(DATABASE_NAME, MODE_PRIVATE, null);
+        if (Beerdb != null) {
             Log.e("DB", "Mở database thành công");
             pdlist.clear(); // Xóa dữ liệu cũ
-            Cursor cursor = db.rawQuery("SELECT * FROM Product", null);
+            Cursor cursor = Beerdb.rawQuery("SELECT * FROM Product", null);
             if (cursor != null) { // Kiểm tra xem có dữ liệu không
                 while (cursor.moveToNext()) { // Di chuyển con trỏ đến từng dòng dữ liệu
                     int id = cursor.getInt(0);
@@ -286,10 +285,10 @@ public class MainActivity extends AppCompatActivity {
 //        bookadapter.notifyDataSetChanged();
 //    }
         if (isBeerlistShow) {
-            String name = edtTitle.getText().toString();
-            double price = Double.parseDouble(edtPrice.getText().toString());
-            db.execSQL("INSERT INTO " + TABLE_NAME + " VALUES (null, '" + name + "', " + price + ")");
-            loadDB();
+            String name = edtTitle.getText().toString(); // Lấy tên sản phẩm
+            double price = Double.parseDouble(edtPrice.getText().toString()); // Lấy giá sản phẩm
+            Beerdb.execSQL("INSERT INTO " + TABLE_NAME + " VALUES (null, '" + name + "', " + price + ")");
+            loadBeerDB();
         } else {
             Book book = new Book(0, edtTitle.getText().toString(), edtAuthor.getText().toString(), Double.parseDouble(edtPrice.getText().toString()));
             BookDao.insertBook(this, book);
