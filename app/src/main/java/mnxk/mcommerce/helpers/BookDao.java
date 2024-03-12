@@ -26,4 +26,29 @@ public class BookDao {
         db.close();
         return books;
     }
+
+    // Insert a new book
+    public static void insertBook(Context context, Book book) {
+        DbHelper dbHelper = new DbHelper(context, "Book", null, 1);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        String sql = "Insert into Book (title, author, price) values ('" + book.getTitle() + "', '" + book.getAuthor() + "', " + book.getPrice() + ")";
+        db.execSQL(sql);
+        db.close();
+    }
+
+    public static void updateBook(Context context, Book book) {
+        DbHelper dbHelper = new DbHelper(context, "Book", null, 1);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        String sql = "Update Book set title = '" + book.getTitle() + "', author = '" + book.getAuthor() + "', price = " + book.getPrice() + " where id = " + book.getId();
+        db.execSQL(sql);
+        db.close();
+    }
+
+    public static void deleteBook(Context context, int id) {
+        DbHelper dbHelper = new DbHelper(context, "Book", null, 1);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        String sql = "Delete from Book where id = " + id;
+        db.execSQL(sql);
+        db.close();
+    }
 }
