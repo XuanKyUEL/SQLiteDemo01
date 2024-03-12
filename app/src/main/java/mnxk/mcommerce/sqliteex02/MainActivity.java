@@ -227,34 +227,75 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void dialogControls() {
+//        btnAddRecord.setOnClickListener(v -> {
+//            if (checkValidFields()) {
+//                insertRecordtoDB();
+//                dialog.dismiss();
+//            }
+//        });
         btnAddRecord.setOnClickListener(v -> {
-            if (checkValidFields()) {
-                insertRecordtoDB();
-                dialog.dismiss();
+            if (isBeerlistShow) {
+                if (checkValidFields()) {
+                    insertRecordtoDB();
+                    dialog.dismiss();
+                }
+            } else {
+                if (checkValidFields()) {
+                    insertRecordtoDB();
+                    dialog.dismiss();
+                }
             }
         });
     }
 
     private boolean checkValidFields() {
-        if (edtTitle.getText().toString().isEmpty() || edtAuthor.getText().toString().isEmpty() || edtPrice.getText().toString().isEmpty()) {
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
-            return false;
-        } else if (edtPrice.getText().toString().matches(".*[a-zA-Z]+.*")) {
-            Toast.makeText(this, "Price must be a number", Toast.LENGTH_SHORT).show();
-            return false;
-        } else if (Double.parseDouble(edtPrice.getText().toString()) <= 0) {
-            Toast.makeText(this, "Price must be greater than 0", Toast.LENGTH_SHORT).show();
-            return false;
+        if (isBeerlistShow) {
+            if (edtTitle.getText().toString().isEmpty() || edtPrice.getText().toString().isEmpty()) {
+                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+                return false;
+            } else if (edtPrice.getText().toString().matches(".*[a-zA-Z]+.*")) {
+                Toast.makeText(this, "Price must be a number", Toast.LENGTH_SHORT).show();
+                return false;
+            } else if (Double.parseDouble(edtPrice.getText().toString()) <= 0) {
+                Toast.makeText(this, "Price must be greater than 0", Toast.LENGTH_SHORT).show();
+                return false;
+            } else {
+                return true;
+            }
         } else {
-            return true;
+            if (edtTitle.getText().toString().isEmpty() || edtAuthor.getText().toString().isEmpty() || edtPrice.getText().toString().isEmpty()) {
+                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+                return false;
+            } else if (edtPrice.getText().toString().matches(".*[a-zA-Z]+.*")) {
+                Toast.makeText(this, "Price must be a number", Toast.LENGTH_SHORT).show();
+                return false;
+            } else if (Double.parseDouble(edtPrice.getText().toString()) <= 0) {
+                Toast.makeText(this, "Price must be greater than 0", Toast.LENGTH_SHORT).show();
+                return false;
+            } else {
+                return true;
+            }
         }
     }
 
     private void insertRecordtoDB() {
-        Book book = new Book(0, edtTitle.getText().toString(), edtAuthor.getText().toString(), Double.parseDouble(edtPrice.getText().toString()));
-        BookDao.insertBook(this, book);
-        booklist.clear();
-        booklist.addAll(BookDao.getAllBooks(this));
-        bookadapter.notifyDataSetChanged();
+//        Book book = new Book(0, edtTitle.getText().toString(), edtAuthor.getText().toString(), Double.parseDouble(edtPrice.getText().toString()));
+//        BookDao.insertBook(this, book);
+//        booklist.clear();
+//        booklist.addAll(BookDao.getAllBooks(this));
+//        bookadapter.notifyDataSetChanged();
+//    }
+        if (isBeerlistShow) {
+            String name = edtTitle.getText().toString();
+            double price = Double.parseDouble(edtPrice.getText().toString());
+            db.execSQL("INSERT INTO " + TABLE_NAME + " VALUES (null, '" + name + "', " + price + ")");
+            loadDB();
+        } else {
+            Book book = new Book(0, edtTitle.getText().toString(), edtAuthor.getText().toString(), Double.parseDouble(edtPrice.getText().toString()));
+            BookDao.insertBook(this, book);
+            booklist.clear();
+            booklist.addAll(BookDao.getAllBooks(this));
+            bookadapter.notifyDataSetChanged();
+        }
     }
 }
