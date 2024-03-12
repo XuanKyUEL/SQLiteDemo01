@@ -11,6 +11,7 @@ import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,6 +29,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 
 import mnxk.mcommerce.adapters.Book;
+import mnxk.mcommerce.adapters.CustomAdapter;
 import mnxk.mcommerce.helpers.BookDao;
 import mnxk.mcommerce.sqliteex02.databinding.ActivityMainBinding;
 
@@ -37,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
 
     ArrayList<String> pdlist;
     ArrayAdapter<String> pdadapter;
+    CustomAdapter<String> BeerCustomAdapter;
+    CustomAdapter<Book> BookCustomAdapter;
     ArrayList<Book> booklist;
     ArrayAdapter<Book> bookadapter;
 
@@ -50,14 +54,17 @@ public class MainActivity extends AppCompatActivity {
     public static final String COLUMN_NAME = "ProductName";
     public static final String COLUMN_PRICE = "ProductPrice";
 
-    Button btnAdd, btnUpdate, btnDelete, btnSearch, btnAddRecord, btnView;
+    Button btnAdd, btnUpdate, btnDelete, btnNext, btnAddRecord, btnView;
     ListView listViewPd, listViewBook;
+    TextView dialogTitle;
 
     TextInputEditText edtTitle, edtAuthor, edtPrice;
     TextInputLayout tilTitle, tilAuthor, tilPrice;
 
     boolean isBooklistShow = true;
     boolean isBeerlistShow = false;
+
+    boolean isOnDeleteUpdateMode = false;
 
     Dialog dialog;
 
@@ -74,6 +81,11 @@ public class MainActivity extends AppCompatActivity {
         copyDBfromAssets();
         addControls();
         loadBeerDB();
+    }
+
+    private void convertToCustomAdapter() {
+        BeerCustomAdapter = new CustomAdapter<>(this, pdlist);
+        BookCustomAdapter = new CustomAdapter<>(this, booklist);
     }
 
     private void loadBeerDB() {
@@ -143,20 +155,22 @@ public class MainActivity extends AppCompatActivity {
 
     private void addControls() {
         pdlist = new ArrayList<>();
-        pdadapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, pdlist);
         booklist = BookDao.getAllBooks(this);
+        convertToCustomAdapter();
+        pdadapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, pdlist);
         bookadapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, booklist);
         // Ánh xạ
         btnView = binding.btnView;
         btnAdd = binding.btnAdd;
         btnView.setOnClickListener(v -> {
+            onExitMode();
             if (isBooklistShow) {
-                binding.listViewPd.setAdapter(pdadapter);
+                binding.listViewPd.setAdapter(BeerCustomAdapter);
                 binding.btnView.setText("View Books");
                 isBooklistShow = false;
                 isBeerlistShow = true;
             } else {
-                binding.listViewPd.setAdapter(bookadapter);
+                binding.listViewPd.setAdapter(BookCustomAdapter);
                 isBooklistShow = true;
                 isBeerlistShow = false;
                 binding.btnView.setText("View Beers");
@@ -164,6 +178,14 @@ public class MainActivity extends AppCompatActivity {
         });
         btnAdd.setOnClickListener(v -> {
             showDialog();
+        });
+        binding.btnDelete.setOnClickListener(v -> {
+            onExitMode();
+            onDeleteMode();
+        });
+        binding.btnUpdate.setOnClickListener(v -> {
+            onExitMode();
+            onUpdateMode();
         });
     }
 
@@ -195,6 +217,38 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void onDeleteMode() {
+        BeerCustomAdapter.setDeleteMode(true);
+        BookCustomAdapter.setDeleteMode(true);
+        binding.btnNext.setVisibility(VISIBLE);
+        isOnDeleteUpdateMode = true;
+    }
+
+    private void onUpdateMode() {
+        BeerCustomAdapter.setUpdateMode(true);
+        BookCustomAdapter.setUpdateMode(true);
+        binding.btnNext.setVisibility(VISIBLE);
+        isOnDeleteUpdateMode = true;
+    }
+
+    private void onExitMode() {
+        BeerCustomAdapter.setDeleteMode(false);
+        BeerCustomAdapter.setUpdateMode(false);
+        BookCustomAdapter.setDeleteMode(false);
+        BookCustomAdapter.setUpdateMode(false);
+        binding.btnNext.setVisibility(GONE);
+        isOnDeleteUpdateMode = false;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (isOnDeleteUpdateMode) {
+            onExitMode();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
     private void showDialog() {
         dialog = new Dialog(this);
         dialog.setContentView(R.layout.custom_dialog);
@@ -209,13 +263,16 @@ public class MainActivity extends AppCompatActivity {
         tilTitle = dialog.findViewById(R.id.til_title);
         tilAuthor = dialog.findViewById(R.id.til_author);
         tilPrice = dialog.findViewById(R.id.til_price);
+        dialogTitle = dialog.findViewById(R.id.dialog_name);
         onFocusHintConfig();
         if (isBeerlistShow) {
+            dialogTitle.setText("Add New Beer");
             edtTitle.setHint("Beer Name");
             edtAuthor.setVisibility(GONE);
             tilAuthor.setVisibility(GONE);
             edtPrice.setHint("Beer Price");
         } else {
+            dialogTitle.setText("Add New Book");
             edtTitle.setHint("Book Title");
             edtAuthor.setHint("Book Author");
             edtPrice.setHint("Book Price");
@@ -226,12 +283,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void dialogControls() {
-//        btnAddRecord.setOnClickListener(v -> {
-//            if (checkValidFields()) {
-//                insertRecordtoDB();
-//                dialog.dismiss();
-//            }
-//        });
         btnAddRecord.setOnClickListener(v -> {
             if (isBeerlistShow) {
                 if (checkValidFields()) {
@@ -278,12 +329,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void insertRecordtoDB() {
-//        Book book = new Book(0, edtTitle.getText().toString(), edtAuthor.getText().toString(), Double.parseDouble(edtPrice.getText().toString()));
-//        BookDao.insertBook(this, book);
-//        booklist.clear();
-//        booklist.addAll(BookDao.getAllBooks(this));
-//        bookadapter.notifyDataSetChanged();
-//    }
         if (isBeerlistShow) {
             String name = edtTitle.getText().toString(); // Lấy tên sản phẩm
             double price = Double.parseDouble(edtPrice.getText().toString()); // Lấy giá sản phẩm
