@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="SQLite Demo"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:layout_marginBottom="5dp"
+        android:textColor="#D84242"
+        android:elevation="10dp"
+        android:textStyle="bold"/>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="5dp"
+        android:layout_marginTop="5dp">
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add"
+            android:id="@+id/btn_add"
+            android:backgroundTint="#35CB25"
+            android:layout_weight="1"
+            android:elevation="10dp"
+            android:layout_marginEnd="5dp"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Delete"
+            android:id="@+id/btn_delete"
+            android:backgroundTint="#D84242"
+            android:layout_weight="1"
+            android:elevation="10dp"
+            android:layout_marginEnd="5dp"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Update"
+            android:id="@+id/btn_update"
+            android:backgroundTint="#42A5D8"
+            android:layout_weight="1"
+            android:elevation="10dp"
+            android:layout_marginEnd="5dp"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="View beer"
+            android:id="@+id/btn_view"
+            android:backgroundTint="#D8A142"
+            android:layout_weight="1"
+            android:elevation="10dp" />
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/listView_pd"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp" />
+
+</LinearLayout>
