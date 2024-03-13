@@ -249,6 +249,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void viewDetails() {
+        // View product detials
+    }
+
     private void showDialog() {
         dialog = new Dialog(this);
         dialog.setContentView(R.layout.custom_dialog);
