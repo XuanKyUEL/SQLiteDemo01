@@ -1,8 +1,8 @@
 package mnxk.mcommerce.adapters;
 
 import android.content.Context;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -14,6 +14,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import mnxk.mcommerce.sqliteex02.R;
 
@@ -23,8 +25,11 @@ public class CustomAdapter<T> extends ArrayAdapter<T> {
 
     private int selectedPosition = -1; // Track the selected position for RadioButton
 
+    private SparseBooleanArray itemCheckedStates; // Track the checked state of items
+
     public CustomAdapter(Context context, ArrayList<T> items) {
         super(context, 0, items);
+        itemCheckedStates = new SparseBooleanArray();
     }
 
     @NonNull
@@ -58,6 +63,10 @@ public class CustomAdapter<T> extends ArrayAdapter<T> {
         if (isDeleteMode) {
             checkBox.setVisibility(View.VISIBLE);
             radioButton.setVisibility(View.GONE);
+            checkBox.setChecked(itemCheckedStates.get(position));
+            checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                itemCheckedStates.put(position, isChecked);
+            });
         } else if (isUpdateMode) {
             checkBox.setVisibility(View.GONE);
             radioButton.setVisibility(View.VISIBLE);
@@ -67,6 +76,12 @@ public class CustomAdapter<T> extends ArrayAdapter<T> {
         }
 
         return convertView;
+    }
+
+    public void clearCheckbox() {
+        for (int i = 0; i < itemCheckedStates.size(); i++) {
+            itemCheckedStates.put(itemCheckedStates.keyAt(i), false);
+        }
     }
 
     // Method to set delete mode
@@ -79,5 +94,13 @@ public class CustomAdapter<T> extends ArrayAdapter<T> {
     public void setUpdateMode(boolean updateMode) {
         isUpdateMode = updateMode;
         notifyDataSetChanged(); // Refresh list view
+    }
+
+    public Map<Integer, Boolean> getItemCheckedStates() {
+        Map<Integer, Boolean> checkedItems = new HashMap<>();
+        for (int i = 0; i < itemCheckedStates.size(); i++) {
+            checkedItems.put(itemCheckedStates.keyAt(i), itemCheckedStates.valueAt(i));
+        }
+        return checkedItems;
     }
 }

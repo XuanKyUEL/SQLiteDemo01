@@ -66,7 +66,8 @@ public class MainActivity extends AppCompatActivity {
 
     boolean isOnDeleteUpdateMode = false;
 
-    Dialog dialog;
+    Dialog Adddialog, Updatedialog, Deletedialog;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -177,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         btnAdd.setOnClickListener(v -> {
-            showDialog();
+            showAddDialog();
         });
         binding.btnDelete.setOnClickListener(v -> {
             onExitMode();
@@ -221,14 +222,48 @@ public class MainActivity extends AppCompatActivity {
         BeerCustomAdapter.setDeleteMode(true);
         BookCustomAdapter.setDeleteMode(true);
         binding.btnNext.setVisibility(VISIBLE);
+        binding.btnNext.setText("Delete");
         isOnDeleteUpdateMode = true;
+        binding.btnNext.setOnClickListener(v -> {
+            // TODO: 13/03/2024 Delete
+            deleteProduct();
+        });
+    }
+
+    private void deleteProduct() {
+        if (isBeerlistShow) {
+            for (int i = 0; i < BeerCustomAdapter.getCount(); i++) {
+                if (Boolean.TRUE.equals(BeerCustomAdapter.getItemCheckedStates().getOrDefault(i, false))) {
+                    String[] id = BeerCustomAdapter.getItem(i).split(" - ");
+                    Beerdb.execSQL("DELETE FROM " + TABLE_NAME + " WHERE " + COLUMN_ID + " = " + id[0]);
+                }
+            }
+            loadBeerDB();
+            BeerCustomAdapter.clearCheckbox();
+            BeerCustomAdapter.notifyDataSetChanged();
+
+        } else {
+            for (int i = 0; i < BookCustomAdapter.getCount(); i++) {
+                if (Boolean.TRUE.equals(BookCustomAdapter.getItemCheckedStates().getOrDefault(i, false))) {
+                    BookDao.deleteBook(this, BookCustomAdapter.getItem(i).getId());
+                }
+            }
+            booklist.clear();
+            booklist.addAll(BookDao.getAllBooks(this));
+            BookCustomAdapter.clearCheckbox();
+            BookCustomAdapter.notifyDataSetChanged();
+        }
     }
 
     private void onUpdateMode() {
         BeerCustomAdapter.setUpdateMode(true);
         BookCustomAdapter.setUpdateMode(true);
+        binding.btnNext.setText("Update");
         binding.btnNext.setVisibility(VISIBLE);
         isOnDeleteUpdateMode = true;
+        binding.btnNext.setOnClickListener(v -> {
+            showUpdateDialog();
+        });
     }
 
     private void onExitMode() {
@@ -253,21 +288,21 @@ public class MainActivity extends AppCompatActivity {
         // View product detials
     }
 
-    private void showDialog() {
-        dialog = new Dialog(this);
-        dialog.setContentView(R.layout.custom_dialog);
+    private void showAddDialog() {
+        Adddialog = new Dialog(this);
+        Adddialog.setContentView(R.layout.custom_dialog);
         // clear nền cũ
-        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        dialog.setCancelable(true);
-        dialog.show();
-        btnAddRecord = dialog.findViewById(R.id.btn_add_record);
-        edtTitle = dialog.findViewById(R.id.et_title);
-        edtAuthor = dialog.findViewById(R.id.et_author);
-        edtPrice = dialog.findViewById(R.id.et_price);
-        tilTitle = dialog.findViewById(R.id.til_title);
-        tilAuthor = dialog.findViewById(R.id.til_author);
-        tilPrice = dialog.findViewById(R.id.til_price);
-        dialogTitle = dialog.findViewById(R.id.dialog_name);
+        Adddialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        Adddialog.setCancelable(true);
+        Adddialog.show();
+        btnAddRecord = Adddialog.findViewById(R.id.btn_add_record);
+        edtTitle = Adddialog.findViewById(R.id.et_title);
+        edtAuthor = Adddialog.findViewById(R.id.et_author);
+        edtPrice = Adddialog.findViewById(R.id.et_price);
+        tilTitle = Adddialog.findViewById(R.id.til_title);
+        tilAuthor = Adddialog.findViewById(R.id.til_author);
+        tilPrice = Adddialog.findViewById(R.id.til_price);
+        dialogTitle = Adddialog.findViewById(R.id.dialog_name);
         onFocusHintConfig();
         if (isBeerlistShow) {
             dialogTitle.setText("Add New Beer");
@@ -283,7 +318,17 @@ public class MainActivity extends AppCompatActivity {
             edtAuthor.setVisibility(VISIBLE);
             tilAuthor.setVisibility(VISIBLE);
         }
+        onExitMode();
         dialogControls();
+    }
+
+    private void showUpdateDialog() {
+        Updatedialog = new Dialog(this);
+        Updatedialog.setContentView(R.layout.update_dialog);
+        // clear nền cũ
+        Updatedialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        Updatedialog.setCancelable(true);
+        Updatedialog.show();
     }
 
     private void dialogControls() {
@@ -291,12 +336,12 @@ public class MainActivity extends AppCompatActivity {
             if (isBeerlistShow) {
                 if (checkValidFields()) {
                     insertRecordtoDB();
-                    dialog.dismiss();
+                    Adddialog.dismiss();
                 }
             } else {
                 if (checkValidFields()) {
                     insertRecordtoDB();
-                    dialog.dismiss();
+                    Adddialog.dismiss();
                 }
             }
         });
@@ -338,12 +383,13 @@ public class MainActivity extends AppCompatActivity {
             double price = Double.parseDouble(edtPrice.getText().toString()); // Lấy giá sản phẩm
             Beerdb.execSQL("INSERT INTO " + TABLE_NAME + " VALUES (null, '" + name + "', " + price + ")");
             loadBeerDB();
+            BeerCustomAdapter.notifyDataSetChanged();
         } else {
             Book book = new Book(0, edtTitle.getText().toString(), edtAuthor.getText().toString(), Double.parseDouble(edtPrice.getText().toString()));
             BookDao.insertBook(this, book);
             booklist.clear();
             booklist.addAll(BookDao.getAllBooks(this));
-            bookadapter.notifyDataSetChanged();
+            BookCustomAdapter.notifyDataSetChanged();
         }
     }
 }
