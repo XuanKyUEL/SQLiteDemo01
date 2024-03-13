@@ -50,6 +50,6 @@ public class Book {
     @NonNull
     @Override
     public String toString() {
-        return title + " - " + author + " - " + price;
+        return id + " - " + title + " - " + author + " - " + price;
     }
 }

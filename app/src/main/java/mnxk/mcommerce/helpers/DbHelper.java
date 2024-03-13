@@ -15,11 +15,11 @@ public class DbHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         String sql = "Create table Book (id integer primary key autoincrement, title text, author text, price real)"; // Tạo bảng Book
         db.execSQL(sql);
-        sql = "Insert into Book (title, author, price) values ('Android', 'Google', 20000)"; // Thêm dữ liệu mẫu
+        sql = "Insert into Book (title, author, price) values ('Harry Porter 1', 'J.K.Rowling', 20000)"; // Thêm dữ liệu mẫu
         db.execSQL(sql);
-        sql = "Insert into Book (title, author, price) values ('iOS', 'Apple', 30000)"; // Thêm dữ liệu mẫu
+        sql = "Insert into Book (title, author, price) values ('Percy Jackson', 'Rick Riordan', 30000)"; // Thêm dữ liệu mẫu
         db.execSQL(sql);
-        sql = "Insert into Book (title, author, price) values ('Window', 'Microsoft', 20000)"; // Thêm dữ liệu mẫu
+        sql = "Insert into Book (title, author, price) values ('Những con chim Ngạn', 'Nguyễn Nguyễn', '15000')"; // Thêm dữ liệu mẫu
         db.execSQL(sql);
     }
 
