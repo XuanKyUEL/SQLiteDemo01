@@ -81,18 +81,9 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        reCreateBookTable();
         copyDBfromAssets();
         addControls();
         loadBeerDB();
-    }
-
-    private void reCreateBookTable() {
-        // re create table book if not exist
-        // First check existance of Book table
-        if (!BookDao.isTableExists(this)) {
-            BookDao.createTable(this);
-        }
     }
 
 
@@ -248,19 +239,33 @@ public class MainActivity extends AppCompatActivity {
     private void onDeleteMode() {
         BeerCustomAdapter.setDeleteMode(true);
         BookCustomAdapter.setDeleteMode(true);
-        binding.btnNext.setVisibility(VISIBLE);
-        binding.btnNext.setText("Delete");
         isOnDeleteUpdateMode = true;
-        binding.btnNext.setOnClickListener(v -> {
-            // TODO: 13/03/2024 Delete
-            deleteProduct();
-            onExitMode();
-            try {
-                dropTable();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
+        if (itemCounts() > 0) {
+            binding.btnNext.setVisibility(VISIBLE);
+            binding.btnNext.setText("Delete");
+            binding.btnNext.setOnClickListener(v -> {
+                deleteProduct();
+                onExitMode();
+                try {
+                    dropTable();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        } else {
+            Toast.makeText(this, "No item to delete", Toast.LENGTH_SHORT).show();
+            binding.btnNext.setVisibility(GONE);
+        }
+    }
+
+    private int itemCounts(){
+        int count;
+        if (isBeerlistShow) {
+            count = BeerCustomAdapter.getCount();
+        } else {
+            count = BookCustomAdapter.getCount();
+        }
+        return count;
     }
 
     private void deleteProduct() {
@@ -296,6 +301,7 @@ public class MainActivity extends AppCompatActivity {
             loadBeerDB();
         } else if (isBooklistShow || BookCustomAdapter.getCount() == 0){
             BookDao.dropTable(this);
+            BookDao.createTable(this);
             booklist.clear();
             BookCustomAdapter.notifyDataSetChanged();
         }
