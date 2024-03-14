@@ -68,6 +68,8 @@ public class MainActivity extends AppCompatActivity {
 
     boolean isOnDeleteUpdateMode = false;
 
+    boolean isViewBtnClicked = false;
+
     Dialog Adddialog, Updatedialog, Deletedialog;
 
 
@@ -135,10 +137,7 @@ public class MainActivity extends AppCompatActivity {
             copyDB();
             Toast.makeText(this, "Database Copied", Toast.LENGTH_SHORT).show();
         } else {
-            Toast.makeText(this, "Database Already Exists", Toast.LENGTH_SHORT).show();
-            dbFile.delete();
-            copyDB();
-            Toast.makeText(this, "Database Re-copied successfully", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Beer Database Already Exists", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -182,6 +181,7 @@ public class MainActivity extends AppCompatActivity {
         btnView = binding.btnView;
         btnAdd = binding.btnAdd;
         btnView.setOnClickListener(v -> {
+            isViewBtnClicked = true;
             onExitMode();
             if (isBooklistShow) {
                 binding.listViewPd.setAdapter(BeerCustomAdapter);
@@ -240,20 +240,19 @@ public class MainActivity extends AppCompatActivity {
         BeerCustomAdapter.setDeleteMode(true);
         BookCustomAdapter.setDeleteMode(true);
         isOnDeleteUpdateMode = true;
-        if (itemCounts() > 0) {
+        if (itemCounts() > 0 && isViewBtnClicked) {
             binding.btnNext.setVisibility(VISIBLE);
             binding.btnNext.setText("Delete");
             binding.btnNext.setOnClickListener(v -> {
                 deleteProduct();
                 onExitMode();
-                try {
-                    dropTable();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                dropTableorDatabase();
             });
+        } else if(itemCounts() == 0 && isViewBtnClicked) {
+            Toast.makeText(this, "Please add record to the database", Toast.LENGTH_SHORT).show();
+            binding.btnNext.setVisibility(GONE);
         } else {
-            Toast.makeText(this, "No item to delete", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please view the list first", Toast.LENGTH_SHORT).show();
             binding.btnNext.setVisibility(GONE);
         }
     }
@@ -294,16 +293,22 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(this, "Delete successful", Toast.LENGTH_SHORT).show();
     }
 
-    private void dropTable() {
+    private void dropTableorDatabase() {
         if (isBeerlistShow || BeerCustomAdapter.getCount() == 0){
-            Beerdb.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
-            Beerdb.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + COLUMN_NAME + " TEXT, " + COLUMN_PRICE + " REAL)");
-            loadBeerDB();
+            // Delete beer database
+            File dbFile = getDatabasePath(DATABASE_NAME);
+            if (dbFile.exists()) {
+                dbFile.delete();
+                Toast.makeText(this, "Beer Database Deleted", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Beer Database Not Found", Toast.LENGTH_SHORT).show();
+            }
         } else if (isBooklistShow || BookCustomAdapter.getCount() == 0){
             BookDao.dropTable(this);
             BookDao.createTable(this);
             booklist.clear();
             BookCustomAdapter.notifyDataSetChanged();
+        } else {
         }
     }
 
@@ -327,13 +332,23 @@ public class MainActivity extends AppCompatActivity {
         isOnDeleteUpdateMode = false;
     }
 
+
     @Override
-    public void onBackPressed() {
+    public boolean onSupportNavigateUp() {
         if (isOnDeleteUpdateMode) {
             onExitMode();
+            return true;
+        } else if (Adddialog.isShowing()) {
+            Adddialog.dismiss();
+        } else if (Updatedialog.isShowing()) {
+            Updatedialog.dismiss();
+        } else if (Deletedialog.isShowing()) {
+            Deletedialog.dismiss();
         } else {
-            super.onBackPressed();
+            finish();
+            return true;
         }
+        return super.onSupportNavigateUp();
     }
 
     private void viewDetails() {
@@ -386,12 +401,12 @@ public class MainActivity extends AppCompatActivity {
     private void dialogControls() {
         btnAddRecord.setOnClickListener(v -> {
             if (isBeerlistShow) {
-                if (checkValidFields()) {
+                if (checkValidAddFields()) {
                     insertRecordtoDB();
                     Adddialog.dismiss();
                 }
             } else {
-                if (checkValidFields()) {
+                if (checkValidAddFields()) {
                     insertRecordtoDB();
                     Adddialog.dismiss();
                 }
@@ -399,7 +414,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private boolean checkValidFields() {
+    private boolean checkValidAddFields() {
         if (isBeerlistShow) {
             if (edtTitle.getText().toString().isEmpty() || edtPrice.getText().toString().isEmpty()) {
                 Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
