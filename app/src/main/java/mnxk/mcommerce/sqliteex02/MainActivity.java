@@ -8,6 +8,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -79,9 +81,34 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        reCreateBookTable();
         copyDBfromAssets();
         addControls();
         loadBeerDB();
+    }
+
+    private void reCreateBookTable() {
+        // re create table book if not exist
+        // First check existance of Book table
+        if (!BookDao.isTableExists(this)) {
+            BookDao.createTable(this);
+        }
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.option_menu, menu);
+        return super .onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.add_menu) {
+            showAddDialog();
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void convertToCustomAdapter() {
@@ -227,6 +254,12 @@ public class MainActivity extends AppCompatActivity {
         binding.btnNext.setOnClickListener(v -> {
             // TODO: 13/03/2024 Delete
             deleteProduct();
+            onExitMode();
+            try {
+                dropTable();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         });
     }
 
@@ -251,6 +284,19 @@ public class MainActivity extends AppCompatActivity {
             booklist.clear();
             booklist.addAll(BookDao.getAllBooks(this));
             BookCustomAdapter.clearCheckbox();
+            BookCustomAdapter.notifyDataSetChanged();
+        }
+        Toast.makeText(this, "Delete successful", Toast.LENGTH_SHORT).show();
+    }
+
+    private void dropTable() {
+        if (isBeerlistShow || BeerCustomAdapter.getCount() == 0){
+            Beerdb.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+            Beerdb.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + COLUMN_NAME + " TEXT, " + COLUMN_PRICE + " REAL)");
+            loadBeerDB();
+        } else if (isBooklistShow || BookCustomAdapter.getCount() == 0){
+            BookDao.dropTable(this);
+            booklist.clear();
             BookCustomAdapter.notifyDataSetChanged();
         }
     }
