@@ -8,8 +8,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -17,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatEditText;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -61,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
     TextView dialogTitle;
 
     TextInputEditText edtTitle, edtAuthor, edtPrice;
+
+    AppCompatEditText etUpdateNameBeer, etUpdatePriceBeer, etUpdateTitle, etUpdateAuthor, etUpdatePriceBook;
     TextInputLayout tilTitle, tilAuthor, tilPrice;
 
     boolean isBooklistShow = true;
@@ -69,6 +70,12 @@ public class MainActivity extends AppCompatActivity {
     boolean isOnDeleteUpdateMode = false;
 
     boolean isViewBtnClicked = false;
+
+    int selectedPositionRadio = -1;
+
+    int beerDetailsId = -1;
+    int bookDetailsId = -1;
+
 
     Dialog Adddialog, Updatedialog, Deletedialog;
 
@@ -89,20 +96,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.option_menu, menu);
-        return super .onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.add_menu) {
-            showAddDialog();
-        }
-        return super.onOptionsItemSelected(item);
-    }
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.option_menu, menu);
+//        return super .onCreateOptionsMenu(menu);
+//    }
+//
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        int id = item.getItemId();
+//        if (id == R.id.add_menu) {
+//            showAddDialog();
+//        }
+//        return super.onOptionsItemSelected(item);
+//    }
 
     private void convertToCustomAdapter() {
         BeerCustomAdapter = new CustomAdapter<>(this, pdlist);
@@ -136,8 +143,6 @@ public class MainActivity extends AppCompatActivity {
         if (!dbFile.exists()) {
             copyDB();
             Toast.makeText(this, "Database Copied", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, "Beer Database Already Exists", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -246,7 +251,9 @@ public class MainActivity extends AppCompatActivity {
             binding.btnNext.setOnClickListener(v -> {
                 deleteProduct();
                 onExitMode();
+                if (itemCounts() == 0) {
                 dropTableorDatabase();
+                }
             });
         } else if(itemCounts() == 0 && isViewBtnClicked) {
             Toast.makeText(this, "Please add record to the database", Toast.LENGTH_SHORT).show();
@@ -268,33 +275,44 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void deleteProduct() {
+        boolean itemSelected = false;
         if (isBeerlistShow) {
             for (int i = 0; i < BeerCustomAdapter.getCount(); i++) {
                 if (Boolean.TRUE.equals(BeerCustomAdapter.getItemCheckedStates().getOrDefault(i, false))) {
                     String[] id = BeerCustomAdapter.getItem(i).split(" - ");
                     Beerdb.execSQL("DELETE FROM " + TABLE_NAME + " WHERE " + COLUMN_ID + " = " + id[0]);
+                    itemSelected = true;
                 }
             }
-            loadBeerDB();
-            BeerCustomAdapter.clearCheckbox();
-            BeerCustomAdapter.notifyDataSetChanged();
-
+            if (itemSelected) {
+                loadBeerDB();
+                BeerCustomAdapter.clearCheckbox();
+                BeerCustomAdapter.notifyDataSetChanged();
+                Toast.makeText(this, "Delete successful", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "No item selected", Toast.LENGTH_SHORT).show();
+            }
         } else {
             for (int i = 0; i < BookCustomAdapter.getCount(); i++) {
                 if (Boolean.TRUE.equals(BookCustomAdapter.getItemCheckedStates().getOrDefault(i, false))) {
                     BookDao.deleteBook(this, BookCustomAdapter.getItem(i).getId());
+                    itemSelected = true;
                 }
             }
-            booklist.clear();
-            booklist.addAll(BookDao.getAllBooks(this));
-            BookCustomAdapter.clearCheckbox();
-            BookCustomAdapter.notifyDataSetChanged();
+            if (itemSelected) {
+                booklist.clear();
+                booklist.addAll(BookDao.getAllBooks(this));
+                BookCustomAdapter.clearCheckbox();
+                BookCustomAdapter.notifyDataSetChanged();
+                Toast.makeText(this, "Delete successful", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "No item selected", Toast.LENGTH_SHORT).show();
+            }
         }
-        Toast.makeText(this, "Delete successful", Toast.LENGTH_SHORT).show();
     }
 
     private void dropTableorDatabase() {
-        if (isBeerlistShow || BeerCustomAdapter.getCount() == 0){
+        if (isBeerlistShow){
             // Delete beer database
             File dbFile = getDatabasePath(DATABASE_NAME);
             if (dbFile.exists()) {
@@ -303,12 +321,11 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "Beer Database Not Found", Toast.LENGTH_SHORT).show();
             }
-        } else if (isBooklistShow || BookCustomAdapter.getCount() == 0){
+        } else if (isBooklistShow){
             BookDao.dropTable(this);
             BookDao.createTable(this);
             booklist.clear();
             BookCustomAdapter.notifyDataSetChanged();
-        } else {
         }
     }
 
@@ -331,7 +348,6 @@ public class MainActivity extends AppCompatActivity {
         binding.btnNext.setVisibility(GONE);
         isOnDeleteUpdateMode = false;
     }
-
 
     @Override
     public boolean onSupportNavigateUp() {
@@ -386,19 +402,99 @@ public class MainActivity extends AppCompatActivity {
             tilAuthor.setVisibility(VISIBLE);
         }
         onExitMode();
-        dialogControls();
+        dialogAddControls();
     }
 
     private void showUpdateDialog() {
         Updatedialog = new Dialog(this);
-        Updatedialog.setContentView(R.layout.update_dialog);
         // clear nền cũ
         Updatedialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         Updatedialog.setCancelable(true);
-        Updatedialog.show();
+        if (isBeerlistShow) {
+            Updatedialog.setContentView(R.layout.beer_update_dialog);
+            btnUpdate = Updatedialog.findViewById(R.id.btn_update_record_beer);
+            // ánh xạ các edittext
+            etUpdateNameBeer = Updatedialog.findViewById(R.id.et_update_name_beer);
+            etUpdatePriceBeer = Updatedialog.findViewById(R.id.et_update_price_beer);
+            // get selected item via radio button
+            if (BeerCustomAdapter.getCount() > 0) {
+                selectedPositionRadio = BeerCustomAdapter.getSelectedPositionRadio();
+                int i = selectedPositionRadio;
+                Log.i("SelectedPosition", String.valueOf(selectedPositionRadio));
+                String beerDetails = BeerCustomAdapter.getItem(i);
+                beerDetailsId = Integer.parseInt(beerDetails.split(" - ")[0]);
+                if (i != -1) {
+                    etUpdateNameBeer.setText(BeerCustomAdapter.getItem(i).split(" - ")[1]);
+                    etUpdatePriceBeer.setText(BeerCustomAdapter.getItem(i).split(" - ")[2]);
+                    Updatedialog.show();
+                    dialogUpdateControls();
+                    onExitMode();
+                } else {
+                    Toast.makeText(this, "Please select an item to update", Toast.LENGTH_SHORT).show();
+                }
+            }
+        } else {
+            Updatedialog.setContentView(R.layout.book_update_dialog);
+            btnUpdate = Updatedialog.findViewById(R.id.btn_update_record_book);
+            // ánh xạ các edittext
+            etUpdateTitle = Updatedialog.findViewById(R.id.et_update_title);
+            etUpdateAuthor = Updatedialog.findViewById(R.id.et_update_author);
+            etUpdatePriceBook = Updatedialog.findViewById(R.id.et_update_price_book);
+            // get selected item via radio button
+            if (BookCustomAdapter.getCount() > 0) {
+                selectedPositionRadio = BookCustomAdapter.getSelectedPositionRadio();
+                int i_book = selectedPositionRadio;
+                String bookDetails = String.valueOf(BookCustomAdapter.getItem(i_book));
+                bookDetailsId = Integer.parseInt(bookDetails.split(" - ")[0]);
+                if (i_book != -1) {
+                    etUpdateTitle.setText(BookCustomAdapter.getItem(i_book).getTitle());
+                    etUpdateAuthor.setText(BookCustomAdapter.getItem(i_book).getAuthor());
+                    etUpdatePriceBook.setText(String.valueOf(BookCustomAdapter.getItem(i_book).getPrice()));
+                    Updatedialog.show();
+                    dialogUpdateControls();
+                    onExitMode();
+                } else {
+                    Toast.makeText(this, "Please select an item to update", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
     }
 
-    private void dialogControls() {
+    private void dialogUpdateControls() {
+        btnUpdate.setOnClickListener(v -> {
+            if (isBeerlistShow) {
+                if (checkValidUpdateFields()) {
+                    updateRecordtoDB();
+                    Updatedialog.dismiss();
+                }
+            } else {
+                if (checkValidUpdateFields()) {
+                    updateRecordtoDB();
+                    Updatedialog.dismiss();
+                }
+            }
+        });
+    }
+
+    private void updateRecordtoDB() {
+        if (isBeerlistShow) {
+            String name = etUpdateNameBeer.getText().toString(); // Lấy tên sản phẩm
+            double price = Double.parseDouble(etUpdatePriceBeer.getText().toString()); // Lấy giá sản phẩm
+            Beerdb.execSQL("UPDATE " + TABLE_NAME + " SET " + COLUMN_NAME + " = '" + name + "', " + COLUMN_PRICE + " = " + price + " WHERE " + COLUMN_ID + " = " + beerDetailsId);
+            Log.i("UpdateBeer", "Updated record: " + beerDetailsId + " - " + name + " - " + price);
+            loadBeerDB();
+            BeerCustomAdapter.notifyDataSetChanged();
+        } else {
+            Book book = new Book(bookDetailsId, etUpdateTitle.getText().toString(), etUpdateAuthor.getText().toString(), Double.parseDouble(etUpdatePriceBook.getText().toString()));
+            Log.i("UpdateBook", "Updated record: " + bookDetailsId + " - " + etUpdateTitle.getText().toString() + " - " + etUpdateAuthor.getText().toString() + " - " + Double.parseDouble(etUpdatePriceBook.getText().toString()));
+            BookDao.updateBook(this, book);
+            booklist.clear();
+            booklist.addAll(BookDao.getAllBooks(this));
+            BookCustomAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private void dialogAddControls() {
         btnAddRecord.setOnClickListener(v -> {
             if (isBeerlistShow) {
                 if (checkValidAddFields()) {
@@ -436,6 +532,36 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Price must be a number", Toast.LENGTH_SHORT).show();
                 return false;
             } else if (Double.parseDouble(edtPrice.getText().toString()) <= 0) {
+                Toast.makeText(this, "Price must be greater than 0", Toast.LENGTH_SHORT).show();
+                return false;
+            } else {
+                return true;
+            }
+        }
+    }
+
+    private boolean checkValidUpdateFields() {
+        if (isBeerlistShow) {
+            if (etUpdateNameBeer.getText().toString().isEmpty() || etUpdatePriceBeer.getText().toString().isEmpty()) {
+                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+                return false;
+            } else if (etUpdatePriceBeer.getText().toString().matches(".*[a-zA-Z]+.*")) {
+                Toast.makeText(this, "Price must be a number", Toast.LENGTH_SHORT).show();
+                return false;
+            } else if (Double.parseDouble(etUpdatePriceBeer.getText().toString()) <= 0) {
+                Toast.makeText(this, "Price must be greater than 0", Toast.LENGTH_SHORT).show();
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            if (etUpdateTitle.getText().toString().isEmpty() || etUpdateAuthor.getText().toString().isEmpty() || etUpdatePriceBook.getText().toString().isEmpty()) {
+                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+                return false;
+            } else if (etUpdatePriceBook.getText().toString().matches(".*[a-zA-Z]+.*")) {
+                Toast.makeText(this, "Price must be a number", Toast.LENGTH_SHORT).show();
+                return false;
+            } else if (Double.parseDouble(etUpdatePriceBook.getText().toString()) <= 0) {
                 Toast.makeText(this, "Price must be greater than 0", Toast.LENGTH_SHORT).show();
                 return false;
             } else {
