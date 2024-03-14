@@ -1,6 +1,7 @@
 package mnxk.mcommerce.adapters;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,15 +18,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import mnxk.mcommerce.helpers.DbHelper;
 import mnxk.mcommerce.sqliteex02.R;
 
 public class CustomAdapter<T> extends ArrayAdapter<T> {
+    private DbHelper db;
     private boolean isDeleteMode = false; // Flag to track delete mode
     private boolean isUpdateMode = false; // Flag to track update mode
 
-    private int selectedPosition = -1; // Track the selected position for RadioButton
+    private int selectedPositionRadio = -1; // Track the selected position for RadioButton
+
+    private int selectedPositionCheckBox = -1; // Track the selected position for RadioButton
 
     private SparseBooleanArray itemCheckedStates; // Track the checked state of items
+
+    private boolean isItemRadioChecked = false; // Track the checked state of items
 
     public CustomAdapter(Context context, ArrayList<T> items) {
         super(context, 0, items);
@@ -46,15 +53,6 @@ public class CustomAdapter<T> extends ArrayAdapter<T> {
         CheckBox checkBox = convertView.findViewById(R.id.checkbox);
         RadioButton radioButton = convertView.findViewById(R.id.radiobutton);
 
-
-        radioButton.setOnCheckedChangeListener((group, checkedId) -> {
-            if (checkedId) {
-                selectedPosition = position;
-                notifyDataSetChanged(); // Refresh list view
-            }
-        });
-        radioButton.setChecked(position == selectedPosition);
-
         // Bind item data to views
         assert item != null;
         textView.setText(item.toString());
@@ -64,17 +62,22 @@ public class CustomAdapter<T> extends ArrayAdapter<T> {
             checkBox.setVisibility(View.VISIBLE);
             radioButton.setVisibility(View.GONE);
             checkBox.setChecked(itemCheckedStates.get(position));
-            checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                itemCheckedStates.put(position, isChecked);
-            });
+            checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> itemCheckedStates.put(position, isChecked));
         } else if (isUpdateMode) {
             checkBox.setVisibility(View.GONE);
             radioButton.setVisibility(View.VISIBLE);
+            radioButton.setOnCheckedChangeListener(null);
+            radioButton.setChecked(position == selectedPositionRadio);
+            radioButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isChecked) {
+                    selectedPositionRadio = position;
+                    notifyDataSetChanged();
+                }
+            });
         } else {
             checkBox.setVisibility(View.GONE);
             radioButton.setVisibility(View.GONE);
         }
-
         return convertView;
     }
 
@@ -84,15 +87,27 @@ public class CustomAdapter<T> extends ArrayAdapter<T> {
         }
     }
 
+    public void clearRadioButton() {
+        selectedPositionRadio = -1;
+        notifyDataSetChanged();
+    }
+
     // Method to set delete mode
     public void setDeleteMode(boolean deleteMode) {
         isDeleteMode = deleteMode;
+        if (!deleteMode) {
+            clearCheckbox();
+        }
         notifyDataSetChanged(); // Refresh list view
     }
 
     // Method to set update mode
     public void setUpdateMode(boolean updateMode) {
         isUpdateMode = updateMode;
+        if (!updateMode) {
+            selectedPositionRadio = -1;
+            clearRadioButton();
+        }
         notifyDataSetChanged(); // Refresh list view
     }
 
@@ -102,5 +117,9 @@ public class CustomAdapter<T> extends ArrayAdapter<T> {
             checkedItems.put(itemCheckedStates.keyAt(i), itemCheckedStates.valueAt(i));
         }
         return checkedItems;
+    }
+
+    public int getSelectedPositionRadio() {
+        return selectedPositionRadio;
     }
 }

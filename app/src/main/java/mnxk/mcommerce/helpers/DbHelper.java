@@ -29,4 +29,14 @@ public class DbHelper extends SQLiteOpenHelper {
         db.execSQL(sql);
         onCreate(db);
     }
+    public int getIdByPosition(SQLiteDatabase db, int position) throws Exception {
+        String sql = "Select id from Book limit " + position + ", 1";
+        int id;
+        try {
+            id = (int) db.compileStatement(sql).simpleQueryForLong();
+        } catch (Exception e) {
+            throw new Exception("Error executing SQL query", e);
+        }
+        return id;
+    }
 }
