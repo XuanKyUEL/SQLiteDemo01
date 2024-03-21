@@ -52,10 +52,11 @@
             android:id="@+id/et_price"/>
     </com.google.android.material.textfield.TextInputLayout>
     <Button
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:text="Add"
-        android:textSize="22sp"
+        android:textSize="16sp"
         android:id="@+id/btn_add_record"
         android:backgroundTint="#35CB25"
         android:layout_margin="5dp"/>
