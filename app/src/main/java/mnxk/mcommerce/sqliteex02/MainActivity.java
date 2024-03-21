@@ -28,6 +28,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Objects;
 
 import mnxk.mcommerce.adapters.Book;
 import mnxk.mcommerce.adapters.CustomAdapter;
@@ -285,7 +286,9 @@ public class MainActivity extends AppCompatActivity {
         builder.setNegativeButton("No", (dialog, which) -> {
             dialog.dismiss();
         });
-        builder.create().show();
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        Objects.requireNonNull(dialog.getWindow()).setBackgroundDrawableResource(R.drawable.confirm_dialog_bg);
     }
 
     private void dropTableorDatabase() {
