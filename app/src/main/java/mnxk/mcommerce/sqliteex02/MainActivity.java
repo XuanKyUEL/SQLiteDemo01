@@ -293,14 +293,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void onUpdateMode() {
-        BeerCustomAdapter.setUpdateMode(true);
-        BookCustomAdapter.setUpdateMode(true);
-        binding.btnNext.setText("Update");
-        binding.btnNext.setVisibility(VISIBLE);
-        isOnDeleteUpdateMode = true;
-        binding.btnNext.setOnClickListener(v -> {
-            showUpdateDialog();
-        });
+        if (itemCounts() > 0) {
+            BeerCustomAdapter.setUpdateMode(true);
+            BookCustomAdapter.setUpdateMode(true);
+            binding.btnNext.setText("Update");
+            binding.btnNext.setVisibility(VISIBLE);
+            isOnDeleteUpdateMode = true;
+            binding.btnNext.setOnClickListener(v -> {
+                showUpdateDialog();
+            });
+        } else {
+            Toast.makeText(this, "Please add an item before updating", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void onExitMode() {
@@ -368,24 +372,23 @@ public class MainActivity extends AppCompatActivity {
             etUpdateNameBeer = Updatedialog.findViewById(R.id.et_update_name_beer);
             etUpdatePriceBeer = Updatedialog.findViewById(R.id.et_update_price_beer);
             // store initial values
-            initialNameBeer = etUpdateNameBeer.getText().toString();
-            initialPriceBeer = etUpdatePriceBeer.getText().toString();
             // get selected item via radio button
             if (BeerCustomAdapter.getCount() > 0) {
                 selectedPositionRadio = BeerCustomAdapter.getSelectedPositionRadio();
                 int i = selectedPositionRadio;
                 Log.i("SelectedPosition", String.valueOf(selectedPositionRadio));
-                String beerDetails = BeerCustomAdapter.getItem(i);
-                beerDetailsId = Integer.parseInt(beerDetails.split(" - ")[0]);
                 if (i != -1) {
+                    String beerDetails = BeerCustomAdapter.getItem(i);
+                    beerDetailsId = Integer.parseInt(beerDetails.split(" - ")[0]);
                     etUpdateNameBeer.setText(BeerCustomAdapter.getItem(i).split(" - ")[1]);
                     etUpdatePriceBeer.setText(BeerCustomAdapter.getItem(i).split(" - ")[2]);
+                    initialNameBeer = etUpdateNameBeer.getText().toString();
+                    initialPriceBeer = etUpdatePriceBeer.getText().toString();
                     Updatedialog.show();
                     dialogUpdateControls();
                     onExitMode();
-                } else {
+                } else
                     Toast.makeText(this, "Please select an item to update", Toast.LENGTH_SHORT).show();
-                }
             }
         } else {
             Updatedialog.setContentView(R.layout.book_update_dialog);
@@ -395,19 +398,19 @@ public class MainActivity extends AppCompatActivity {
             etUpdateAuthor = Updatedialog.findViewById(R.id.et_update_author);
             etUpdatePriceBook = Updatedialog.findViewById(R.id.et_update_price_book);
             // store initial values
-            initialTitle = etUpdateTitle.getText().toString();
-            initialAuthor = etUpdateAuthor.getText().toString();
-            initialPriceBook = etUpdatePriceBook.getText().toString();
             // get selected item via radio button
             if (BookCustomAdapter.getCount() > 0) {
                 selectedPositionRadio = BookCustomAdapter.getSelectedPositionRadio();
                 int i_book = selectedPositionRadio;
-                String bookDetails = String.valueOf(BookCustomAdapter.getItem(i_book));
-                bookDetailsId = Integer.parseInt(bookDetails.split(" - ")[0]);
                 if (i_book != -1) {
+                    String bookDetails = String.valueOf(BookCustomAdapter.getItem(i_book));
+                    bookDetailsId = Integer.parseInt(bookDetails.split(" - ")[0]);
                     etUpdateTitle.setText(BookCustomAdapter.getItem(i_book).getTitle());
                     etUpdateAuthor.setText(BookCustomAdapter.getItem(i_book).getAuthor());
                     etUpdatePriceBook.setText(String.valueOf(BookCustomAdapter.getItem(i_book).getPrice()));
+                    initialTitle = etUpdateTitle.getText().toString();
+                    initialAuthor = etUpdateAuthor.getText().toString();
+                    initialPriceBook = etUpdatePriceBook.getText().toString();
                     Updatedialog.show();
                     dialogUpdateControls();
                     onExitMode();
