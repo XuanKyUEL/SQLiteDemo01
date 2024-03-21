@@ -62,9 +62,7 @@ public class CustomAdapter<T> extends ArrayAdapter<T> {
             checkBox.setVisibility(View.VISIBLE);
             radioButton.setVisibility(View.GONE);
             checkBox.setChecked(itemCheckedStates.get(position));
-            checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                itemCheckedStates.put(position, isChecked);
-            });
+            checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> itemCheckedStates.put(position, isChecked));
         } else if (isUpdateMode) {
             checkBox.setVisibility(View.GONE);
             radioButton.setVisibility(View.VISIBLE);
