@@ -244,7 +244,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             if (itemSelected) {
-                confirmDelete();
                 loadBeerDB();
                 BeerCustomAdapter.clearCheckbox();
                 BeerCustomAdapter.notifyDataSetChanged();
@@ -351,7 +350,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void showAddDialog() {
         Adddialog = new Dialog(this);
-        Adddialog.setContentView(R.layout.custom_dialog);
+        Adddialog.setContentView(R.layout.add_dialog);
         // clear nền cũ
         Adddialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         Adddialog.setCancelable(true);
