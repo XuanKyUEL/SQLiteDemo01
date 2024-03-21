@@ -14,10 +14,24 @@
         android:text="SQLite Demo"
         android:textSize="20sp"
         android:gravity="center"
+        android:layout_marginTop="5dp"
         android:layout_marginBottom="5dp"
         android:textColor="#D84242"
         android:elevation="10dp"
         android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/tv_view_all"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:text="Viewing all beers"
+        android:paddingStart="5dp"
+        android:paddingEnd="5dp"
+        android:textColor="#1E13BF"
+        android:layout_marginBottom="5dp"
+        android:layout_marginTop="5dp"
+        android:visibility="gone"/>
 
 
     <LinearLayout

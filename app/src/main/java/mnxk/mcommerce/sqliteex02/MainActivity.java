@@ -59,10 +59,12 @@ public class MainActivity extends AppCompatActivity {
     ListView listViewPd, listViewBook;
     TextView dialogTitle;
 
-    TextInputEditText edtTitle, edtAuthor, edtPrice;
+    AppCompatEditText edtTitle, edtAuthor, edtPrice;
 
     AppCompatEditText etUpdateNameBeer, etUpdatePriceBeer, etUpdateTitle, etUpdateAuthor, etUpdatePriceBook;
     TextInputLayout tilTitle, tilAuthor, tilPrice;
+
+    private String initialNameBeer, initialPriceBeer, initialTitle, initialAuthor, initialPriceBook;
 
     boolean isBooklistShow = true;
     boolean isBeerlistShow = false;
@@ -172,10 +174,12 @@ public class MainActivity extends AppCompatActivity {
         btnAdd = binding.btnAdd;
         btnView.setOnClickListener(v -> {
             isViewBtnClicked = true;
+            binding.tvViewAll.setVisibility(VISIBLE);
             onExitMode();
             if (isBooklistShow) {
                 binding.listViewPd.setAdapter(BeerCustomAdapter);
                 binding.btnView.setText("View Books");
+                binding.tvViewAll.setText("Viewing Beers");
                 isBooklistShow = false;
                 isBeerlistShow = true;
             } else {
@@ -183,6 +187,7 @@ public class MainActivity extends AppCompatActivity {
                 isBooklistShow = true;
                 isBeerlistShow = false;
                 binding.btnView.setText("View Beers");
+                binding.tvViewAll.setText("Viewing Books");
             }
         });
         btnAdd.setOnClickListener(v -> {
@@ -198,33 +203,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void onFocusHintConfig() {
-        edtTitle.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus && isBeerlistShow) {
-                tilTitle.setHint("Beer Name");
-            } else if (hasFocus && isBooklistShow) {
-                tilTitle.setHint("Book Title");
-            } else {
-                tilTitle.setHint("");
-            }
-        });
-        edtAuthor.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus && isBooklistShow) {
-                tilAuthor.setHint("Author");
-            } else {
-                tilAuthor.setHint("");
-            }
-        });
-        edtPrice.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus && isBeerlistShow) {
-                tilPrice.setHint("Beer Price");
-            } else if (hasFocus && isBooklistShow) {
-                tilPrice.setHint("Book Price");
-            } else {
-                tilPrice.setHint("");
-            }
-        });
-    }
 
     private void onDeleteMode() {
         BeerCustomAdapter.setDeleteMode(true);
@@ -352,10 +330,6 @@ public class MainActivity extends AppCompatActivity {
         return super.onSupportNavigateUp();
     }
 
-    private void viewDetails() {
-        // View product details
-    }
-
     private void showAddDialog() {
         Adddialog = new Dialog(this);
         Adddialog.setContentView(R.layout.custom_dialog);
@@ -364,25 +338,17 @@ public class MainActivity extends AppCompatActivity {
         Adddialog.setCancelable(true);
         Adddialog.show();
         btnAddRecord = Adddialog.findViewById(R.id.btn_add_record);
-        edtTitle = Adddialog.findViewById(R.id.et_title);
         edtAuthor = Adddialog.findViewById(R.id.et_author);
+        edtTitle = Adddialog.findViewById(R.id.et_title);
         edtPrice = Adddialog.findViewById(R.id.et_price);
-        tilTitle = Adddialog.findViewById(R.id.til_title);
         tilAuthor = Adddialog.findViewById(R.id.til_author);
-        tilPrice = Adddialog.findViewById(R.id.til_price);
         dialogTitle = Adddialog.findViewById(R.id.dialog_name);
-        onFocusHintConfig();
         if (isBeerlistShow) {
             dialogTitle.setText("Add New Beer");
-            edtTitle.setHint("Beer Name");
             edtAuthor.setVisibility(GONE);
             tilAuthor.setVisibility(GONE);
-            edtPrice.setHint("Beer Price");
         } else {
             dialogTitle.setText("Add New Book");
-            edtTitle.setHint("Book Title");
-            edtAuthor.setHint("Book Author");
-            edtPrice.setHint("Book Price");
             edtAuthor.setVisibility(VISIBLE);
             tilAuthor.setVisibility(VISIBLE);
         }
@@ -401,6 +367,9 @@ public class MainActivity extends AppCompatActivity {
             // ánh xạ các edittext
             etUpdateNameBeer = Updatedialog.findViewById(R.id.et_update_name_beer);
             etUpdatePriceBeer = Updatedialog.findViewById(R.id.et_update_price_beer);
+            // store initial values
+            initialNameBeer = etUpdateNameBeer.getText().toString();
+            initialPriceBeer = etUpdatePriceBeer.getText().toString();
             // get selected item via radio button
             if (BeerCustomAdapter.getCount() > 0) {
                 selectedPositionRadio = BeerCustomAdapter.getSelectedPositionRadio();
@@ -425,6 +394,10 @@ public class MainActivity extends AppCompatActivity {
             etUpdateTitle = Updatedialog.findViewById(R.id.et_update_title);
             etUpdateAuthor = Updatedialog.findViewById(R.id.et_update_author);
             etUpdatePriceBook = Updatedialog.findViewById(R.id.et_update_price_book);
+            // store initial values
+            initialTitle = etUpdateTitle.getText().toString();
+            initialAuthor = etUpdateAuthor.getText().toString();
+            initialPriceBook = etUpdatePriceBook.getText().toString();
             // get selected item via radio button
             if (BookCustomAdapter.getCount() > 0) {
                 selectedPositionRadio = BookCustomAdapter.getSelectedPositionRadio();
@@ -468,6 +441,7 @@ public class MainActivity extends AppCompatActivity {
             Beerdb.execSQL("UPDATE " + TABLE_NAME + " SET " + COLUMN_NAME + " = '" + name + "', " + COLUMN_PRICE + " = " + price + " WHERE " + COLUMN_ID + " = " + beerDetailsId);
             Log.i("UpdateBeer", "Updated record: " + beerDetailsId + " - " + name + " - " + price);
             loadBeerDB();
+            Toast.makeText(this, "Update successful", Toast.LENGTH_SHORT).show();
             BeerCustomAdapter.notifyDataSetChanged();
         } else {
             Book book = new Book(bookDetailsId, etUpdateTitle.getText().toString(), etUpdateAuthor.getText().toString(), Double.parseDouble(etUpdatePriceBook.getText().toString()));
@@ -475,6 +449,7 @@ public class MainActivity extends AppCompatActivity {
             BookDao.updateBook(this, book);
             booklist.clear();
             booklist.addAll(BookDao.getAllBooks(this));
+            Toast.makeText(this, "Update successful", Toast.LENGTH_SHORT).show();
             BookCustomAdapter.notifyDataSetChanged();
         }
     }
@@ -536,6 +511,9 @@ public class MainActivity extends AppCompatActivity {
             } else if (Double.parseDouble(etUpdatePriceBeer.getText().toString()) <= 0) {
                 Toast.makeText(this, "Price must be greater than 0", Toast.LENGTH_SHORT).show();
                 return false;
+            } else if (etUpdateNameBeer.getText().toString().equals(initialNameBeer) && etUpdatePriceBeer.getText().toString().equals(initialPriceBeer)){
+                Toast.makeText(this, "No changes made", Toast.LENGTH_SHORT).show();
+                return false;
             } else {
                 return true;
             }
@@ -548,6 +526,9 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             } else if (Double.parseDouble(etUpdatePriceBook.getText().toString()) <= 0) {
                 Toast.makeText(this, "Price must be greater than 0", Toast.LENGTH_SHORT).show();
+                return false;
+            } else if (etUpdateTitle.getText().toString().equals(initialTitle) && etUpdateAuthor.getText().toString().equals(initialAuthor) && etUpdatePriceBook.getText().toString().equals(initialPriceBook)){
+                Toast.makeText(this, "No changes made", Toast.LENGTH_SHORT).show();
                 return false;
             } else {
                 return true;
@@ -562,12 +543,14 @@ public class MainActivity extends AppCompatActivity {
             Beerdb.execSQL("INSERT INTO " + TABLE_NAME + " VALUES (null, '" + name + "', " + price + ")");
             loadBeerDB();
             BeerCustomAdapter.notifyDataSetChanged();
+            Toast.makeText(this, "Add successful", Toast.LENGTH_SHORT).show();
         } else {
             Book book = new Book(0, edtTitle.getText().toString(), edtAuthor.getText().toString(), Double.parseDouble(edtPrice.getText().toString()));
             BookDao.insertBook(this, book);
             booklist.clear();
             booklist.addAll(BookDao.getAllBooks(this));
             BookCustomAdapter.notifyDataSetChanged();
+            Toast.makeText(this, "Add successful", Toast.LENGTH_SHORT).show();
         }
     }
 }
