@@ -543,7 +543,7 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             } else if (Double.parseDouble(etUpdatePriceBook.getText().toString()) <= 0) {
                 Toast.makeText(this, "Price must be greater than 0", Toast.LENGTH_SHORT).show();
-                return false;
+                return false; 
             } else if (etUpdateTitle.getText().toString().equals(initialTitle) && etUpdateAuthor.getText().toString().equals(initialAuthor) && etUpdatePriceBook.getText().toString().equals(initialPriceBook)){
                 Toast.makeText(this, "No changes made", Toast.LENGTH_SHORT).show();
                 return false;
