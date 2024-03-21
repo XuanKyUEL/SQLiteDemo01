@@ -3,6 +3,7 @@ package mnxk.mcommerce.sqliteex02;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -20,7 +21,6 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.io.File;
@@ -248,6 +248,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             if (itemSelected) {
+                showConfirmDialog();
                 loadBeerDB();
                 BeerCustomAdapter.clearCheckbox();
                 BeerCustomAdapter.notifyDataSetChanged();
@@ -272,6 +273,21 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "No item selected", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    private void showConfirmDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Confirm");
+        builder.setMessage("Are you sure you want to delete the selected items?");
+        builder.setPositiveButton("Yes", (dialog, which) -> {
+            // Delete selected items
+
+            dialog.dismiss();
+        });
+        builder.setNegativeButton("No", (dialog, which) -> {
+            dialog.dismiss();
+        });
+        builder.create().show();
     }
 
     private void dropTableorDatabase() {
