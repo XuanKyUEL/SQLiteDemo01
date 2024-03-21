@@ -212,11 +212,7 @@ public class MainActivity extends AppCompatActivity {
             binding.btnNext.setVisibility(VISIBLE);
             binding.btnNext.setText("Delete");
             binding.btnNext.setOnClickListener(v -> {
-                deleteProduct();
-                onExitMode();
-                if (itemCounts() == 0) {
-                dropTableorDatabase();
-                }
+                confirmDelete();
             });
         } else if(itemCounts() == 0 && isViewBtnClicked) {
             Toast.makeText(this, "Please add record to the database", Toast.LENGTH_SHORT).show();
@@ -248,7 +244,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             if (itemSelected) {
-                showConfirmDialog();
+                confirmDelete();
                 loadBeerDB();
                 BeerCustomAdapter.clearCheckbox();
                 BeerCustomAdapter.notifyDataSetChanged();
@@ -275,13 +271,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void showConfirmDialog() {
+    private void confirmDelete() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Confirm");
         builder.setMessage("Are you sure you want to delete the selected items?");
         builder.setPositiveButton("Yes", (dialog, which) -> {
-            // Delete selected items
-
+            deleteProduct();
+            onExitMode();
+            if (itemCounts() == 0) {
+                dropTableorDatabase();
+            }
             dialog.dismiss();
         });
         builder.setNegativeButton("No", (dialog, which) -> {
